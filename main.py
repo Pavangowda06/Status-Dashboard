@@ -212,29 +212,33 @@ async def mainstatus_page(request: Request):
         components["prisma"] = prisma_components_sorted
 
 
-        # Grafana
-        grafana_components = {}
+        grafana_components = []
         try:
             grafana_res = await client.get("https://status.grafana.com/api/v2/components.json")
             grafana_res.raise_for_status()
             for comp in grafana_res.json().get("components", []):
                 name = comp.get("name")
                 status = comp.get("status")
-                grafana_components[name] = {
+                severity = status if status.lower() != "operational" else None
+                grafana_components.append({
+                    "name": name,
                     "status": status,
-                    "severity": status if status.lower() != "operational" else None
-                }
-        except:
-            grafana_components = {}
+                    "severity": severity,
+                    "url": f"https://status.grafana.com/components/{comp.get('id')}"
+            })
+        except Exception as e:
+            print(f"Error fetching Grafana components: {e}")
+            grafana_components = []
 
-        grafana_components_sorted = dict(sorted(
-            grafana_components.items(),
-            key=lambda item: item[1]["status"].lower() == "operational"
-        ))
+        # Sort non-operational first
+        grafana_components_sorted = sorted(
+        grafana_components,
+        key=lambda c: c["status"].lower() == "operational"
+        )
 
-        non_operational_grafana = sum(1 for val in grafana_components.values() if val["status"].lower() != "operational")
-        status_colors["grafana"] = calculate_status_color(non_operational_grafana)
-        details["grafana"] = calculate_status_label(non_operational_grafana)
+        non_operational_count = sum(1 for c in grafana_components if c["status"].lower() != "operational")
+        status_colors["grafana"] = calculate_status_color(non_operational_count)
+        details["grafana"] = calculate_status_label(non_operational_count)
         components["grafana"] = grafana_components_sorted
 
 

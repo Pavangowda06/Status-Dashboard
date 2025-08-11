@@ -49,8 +49,8 @@
       font-weight: 700;
       font-size: 1.1em;
       margin-right: 20px;
-      width: 100px;
-      text-align: center;
+      width: 190px;
+      text-align: right;
       color: #333;
       user-select: none;
       flex-shrink: 0;
@@ -383,12 +383,12 @@
               onkeyup="filterGrafana(this)"
               aria-label="Search Grafana components"
             />
-            {% for name, info in components.grafana.items() %}
-              <a href="https://status.grafana.com/" target="_blank" rel="noopener noreferrer">
-                <span class="dot {{ 'dot-green' if info.status == 'operational' else 'dot-red' }}"></span>
-                {{ name }}
-                {% if info.status != 'operational' %}
-                  <span class="status-detail">({{ info.severity | capitalize }})</span>
+            {% for comp in components.grafana %}
+              <a href="{{ comp.url or 'https://grafana.status.io/' }}" target="_blank" rel="noopener noreferrer">
+                <span class="dot {{ 'dot-green' if comp.status == 'operational' else 'dot-red' }}"></span>
+                {{ comp.name }}
+                {% if comp.status != 'operational' %}
+                  <span class="status-detail">({{ comp.severity | capitalize }})</span>
                 {% endif %}
               </a>
             {% endfor %}
@@ -396,6 +396,7 @@
         </div>
       </div>
     </div>
+
 
     <!--  OKTA STATUS -->
     <div class="status-row">
@@ -466,7 +467,7 @@
     setInterval(function () {
       window.location.reload();
     }, 30000);
-     
   </script>
 </body>
 </html>
+
